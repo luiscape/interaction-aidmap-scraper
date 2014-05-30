@@ -16,13 +16,13 @@ library(sqldf)
 message('Loading list of maps.')
 # Manually creating the list of maps and URLs to scrape.
 map_name <- c('Mexico Aid Map',
-               'India Aid Map',
-               'China Aid Map',
-               'Haiti Aid Map',
-               'Food Security Aid Map',
-               'Horn of Africa Aid Map',
-               'Health Aid Map')
-    
+              'India Aid Map',
+              'China Aid Map',
+              'Haiti Aid Map',
+              'Food Security Aid Map',
+              'Horn of Africa Aid Map',
+              'Health Aid Map')
+
 url <- c('http://mexico.ngoaidmap.org/.csv', 
          'http://india.ngoaidmap.org/.csv', 
          'http://china.ngoaidmap.org/.csv',
@@ -64,6 +64,12 @@ WriteTables <- function() {
                      aid_maps_data,
                      row.names = FALSE, 
                      overwrite = TRUE)
+        
+        # Generating scrape metadata.
+        scrape_time <- as.factor(Sys.time())
+        id <- paste(ceiling(runif(1, 1, 100)), format(Sys.time(), "%Y"), sep = "_")
+        new_data <- TRUE
+        scraperMetadata <- data.frame(scrape_time, id, new_data)
     }
     else { 
         oldData <- dbReadTable(db, "interaction_ngo_aid_maps")
@@ -75,13 +81,13 @@ WriteTables <- function() {
                      newData, 
                      row.names = FALSE, 
                      overwrite = TRUE)
+        
+        # Generating scrape metadata.
+        scrape_time <- as.factor(Sys.time())
+        id <- paste(ceiling(runif(1, 1, 100)), format(Sys.time(), "%Y"), sep = "_")
+        new_data <- as.factor(identical(oldData, newData))
+        scraperMetadata <- data.frame(scrape_time, id, new_data)
     }
-    
-    # Generating scrape metadata.
-    scrape_time <- as.factor(Sys.time())
-    id <- paste(ceiling(runif(1, 1, 100)), format(Sys.time(), "%Y"), sep = "_")
-    new_data <- as.factor(identical(oldData, newData))
-    scraperMetadata <- data.frame(scrape_time, id, new_data)
     
     if ("_scraper_metadata" %in% dbListTables(db) == FALSE) {
         dbWriteTable(db, 
@@ -93,7 +99,7 @@ WriteTables <- function() {
     else { 
         dbWriteTable(db,
                      "_scraper_metadata", 
-                     scraperMetadata, 
+                     scraperMetadaota, 
                      row.names = FALSE, 
                      append = TRUE)  
     }
